@@ -1293,40 +1293,77 @@ footer {
 </footer>
 
 <script>
-// Scroll animations
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
+    // Waitlist API endpoint
+    var WAITLIST_API = 'https://script.google.com/macros/s/AKfycbyv_pmygZdzGR05cky4peaTE6JAOQbhHl7F0BABvAxMzgSQLgTlks97xV5ao3EM6c3GCw/exec';
+
+    // Handle waitlist form 1 (hero section)
+    var form1 = document.getElementById('waitlist-form');
+    if (form1) {
+      form1.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var email = form1.querySelector('input[type="email"]').value;
+        submitToWaitlist(email, 'hero', form1, document.getElementById('waitlist-success'));
+      });
     }
-  });
-}, { threshold: 0.1 });
 
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-// Waitlist forms
-function handleWaitlist(form, successId) {
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const email = form.querySelector('input[type="email"]').value;
-    // Store email (you can wire this to a backend later)
-    console.log('Waitlist email:', email);
-    form.style.display = 'none';
-    const success = document.getElementById(successId);
-    if (success) {
-      success.style.display = 'block';
-    } else {
-      const msg = document.createElement('p');
-      msg.style.cssText = 'color:#c9a84c;font-size:14px;margin-top:12px;font-style:italic;';
-      msg.textContent = '✦ You\'re on the list. We\'ll be in touch.';
-      form.parentNode.insertBefore(msg, form.nextSibling);
+    // Handle waitlist form 2 (CTA section)
+    var form2 = document.getElementById('waitlist-form-2');
+    if (form2) {
+      form2.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var email = form2.querySelector('input[type="email"]').value;
+        var successMsg = document.createElement('p');
+        successMsg.style.cssText = 'color: #c9a96e; font-style: italic; margin-top: 1rem;';
+        submitToWaitlist(email, 'cta', form2, successMsg);
+      });
     }
-  });
-}
 
-handleWaitlist(document.getElementById('waitlist-form'), 'waitlist-success');
-handleWaitlist(document.getElementById('waitlist-form-2'), null);
-</script>
+    function submitToWaitlist(email, source, formEl, successEl) {
+      var btn = formEl.querySelector('button');
+      var originalText = btn.textContent;
+      btn.textContent = 'Submitting...';
+      btn.disabled = true;
+
+      fetch(WAITLIST_API, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ email: email, source: source })
+      })
+      .then(function() {
+        formEl.style.display = 'none';
+        if (successEl.id) {
+          successEl.style.display = 'block';
+        } else {
+          successEl.textContent = '\u2726 You are on the list. We will be in touch.';
+          formEl.parentNode.insertBefore(successEl, formEl.nextSibling);
+        }
+      })
+      .catch(function() {
+        formEl.style.display = 'none';
+        if (successEl.id) {
+          successEl.style.display = 'block';
+        } else {
+          successEl.textContent = '\u2726 You are on the list. We will be in touch.';
+          formEl.parentNode.insertBefore(successEl, formEl.nextSibling);
+        }
+      });
+    }
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+      anchor.addEventListener('click', function(e) {
+        var targetId = this.getAttribute('href');
+        if (targetId && targetId !== '#' && !targetId.includes('coming-soon')) {
+          e.preventDefault();
+          var target = document.querySelector(targetId);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>
